@@ -38,13 +38,11 @@ def get_backup_root(filename):
 
     path_parts = os.path.split(filename)
 
-    # print("path_parts===", path_parts)
-
     if path_parts[0] == "/":
         return False
 
     if os.path.exists(os.path.join(path_parts[0], "backup.marker")):
-        return os.path.join(path_parts[0])
+        return path_parts[0]
 
     return get_backup_root(path_parts[0])
 
@@ -80,11 +78,6 @@ def process_file(filename):
         rel_path = m.group(1)
         rel_path = rel_path.lstrip("/")  # to make it relative strip leading slash
 
-    # print("rel_path == ", rel_path)
-    # print("orig_path=", orig_path)
-    # print("rel_path == ", rel_path)
-    # print("file=", file)
-
     backups = get_backup_folders(backup_root)
 
     num_backups = len(backups)
@@ -108,13 +101,13 @@ def process_file(filename):
         this_size = ""
 
         if os.path.exists(b_fullpath):
-            file_size = os.stat(b_fullpath)
-            this_size = file_size.st_size
+            file_stats = os.stat(b_fullpath)
+            this_size = file_stats.st_size
             if args.md5:
                 this_md5 = md5(b_fullpath)
 
-            print(rel_path, end="")
-            print("/" + file, end="")
+            print(os.path.join(rel_path, file), end="")
+            # print("/" + file, end="")
 
             if args.md5:
                 is_changed = this_md5 != previous_md5
@@ -125,9 +118,11 @@ def process_file(filename):
                 print("\t_size=", this_size, end="")
                 if args.md5:
                     print("\t_md5=", this_md5, end="")
+            else:
+                print('       "', end="")
 
-                if args.generate_links:
-                    make_sure_path_exists(links_dir)
+                if args.links_dir:
+                    make_sure_path_exists(args.links_dir)
                     os.symlink(b_fullpath, os.path.join(args.links_dir, b_date + "__" + file))
 
         else:
@@ -173,7 +168,7 @@ def main():
 
     parser.add_argument(
         "-d",
-        "--links_dir",
+        "--links-dir",
         type=str,
         default="",
         help="Directory to story links in when using --generate-links. Default: '.' ",
@@ -201,7 +196,6 @@ def main():
         print("os.path.isfile(single_input)=", os.path.isfile(single_input))
 
         if not (os.path.isdir(single_input) or os.path.isfile(single_input)):
-            print("himom")
             parser.print_help()
             return 0
 
