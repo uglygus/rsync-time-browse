@@ -101,12 +101,12 @@ def process_file(filename):
         this_size = ""
 
         if os.path.exists(b_fullpath):
-            file_stats = os.stat(b_fullpath)
+        3 ake this depend on th -u flag    file_stats = os.stat(b_fullpath)
             this_size = file_stats.st_size
             if args.md5:
                 this_md5 = md5(b_fullpath)
 
-            print(os.path.join(rel_path, file), end="")
+        #    print(os.path.join(rel_path, file), end="")
             # print("/" + file, end="")
 
             if args.md5:
@@ -115,6 +115,7 @@ def process_file(filename):
                 is_changed = this_size != previous_size
 
             if is_changed:
+                print(os.path.join(rel_path, file), end="")
                 print("\t_size=", this_size, end="")
                 if args.md5:
                     print("\t_md5=", this_md5, end="")
@@ -122,7 +123,8 @@ def process_file(filename):
                 print('       "', end="")
 
                 if args.links_dir:
-                    make_sure_path_exists(args.links_dir)
+                    os.makedirs(path, exists=True)
+                    # make_sure_path_exists(args.links_dir)
                     os.symlink(b_fullpath, os.path.join(args.links_dir, b_date + "__" + file))
 
         else:
@@ -130,6 +132,7 @@ def process_file(filename):
 
         previous_md5 = this_md5
         previous_size = this_size
+        previous_fullpath = b_fullpath
         print("")
 
 
@@ -139,17 +142,12 @@ def main():
         description="List all version of a specific file in a timemachine style hardlink backup dir."
     )
     parser.add_argument("input", nargs="*", default="", help="input file ...")
-    parser.add_argument(
-        "-l",
-        "--generate-links",
-        action="store_true",
-        help="generate POSIX style soft links for every unique version of the file.",
-    )
+
     parser.add_argument(
         "-u",
         "--unique",
         action="store_true",
-        help="only output the most recent unique filenames.",
+        help="Only output each file state once.",
     )
 
     parser.add_argument(
@@ -171,7 +169,7 @@ def main():
         "--links-dir",
         type=str,
         default="",
-        help="Directory to story links in when using --generate-links. Default: '.' ",
+        help="Create a linked file to each state of the fle. Directory to story links in.",
     )
 
     global args
