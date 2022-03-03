@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 
 args = argparse.Namespace()
 
@@ -70,7 +71,12 @@ def process_file(filename):
     rel_path = ""
     orig_path, file = os.path.split(filename)
     backup_root = get_backup_root(filename)
-    print("BACKUP_ROOT = ", backup_root)
+#    print("BACKUP_ROOT = ", backup_root)
+    if not backup_root:
+        print("Cannot find .marker in this tree:", filename)
+        return
+
+    print(filename)
 
     pattern = ".+\d\d\d\d-\d\d-\d\d-\d\d\d\d\d\d(.+)"
     m = re.search(pattern, orig_path)
@@ -81,11 +87,20 @@ def process_file(filename):
     backups = get_backup_folders(backup_root)
 
     num_backups = len(backups)
-    print(f"Contains __{num_backups}__ backup folders.\n")
+    print(f"{num_backups}  backups at root:", backup_root)
 
     previous_md5 = ""
     previous_size = ""
     this_md5 = ""
+
+
+    if args.links_dir:
+        try:
+            make_sure_path_exists(args.links_dir)
+            #os.makedirs(args.links_dir, exist_ok=False)
+        except FileExistsError:
+            print('links dir exists already. No links made.')
+            args.links_dir=False
 
     for b in backups:
 
@@ -95,18 +110,19 @@ def process_file(filename):
         if args.fullpath:
             print(backup_root + "/", end="")
 
-        print(b_date + "/", end="")
-
         this_md5 = ""
         this_size = ""
 
         if os.path.exists(b_fullpath):
-        3 ake this depend on th -u flag    file_stats = os.stat(b_fullpath)
+            file_stats = os.stat(b_fullpath)
             this_size = file_stats.st_size
+
+
+
             if args.md5:
                 this_md5 = md5(b_fullpath)
 
-        #    print(os.path.join(rel_path, file), end="")
+            #    print(os.path.join(rel_path, file), end="")
             # print("/" + file, end="")
 
             if args.md5:
@@ -115,26 +131,34 @@ def process_file(filename):
                 is_changed = this_size != previous_size
 
             if is_changed:
+                print(b_date + "/", end="")
                 print(os.path.join(rel_path, file), end="")
                 print("\t_size=", this_size, end="")
                 if args.md5:
                     print("\t_md5=", this_md5, end="")
+                print("")
             else:
-                print('       "', end="")
-
+                if args.all:
+                    print(b_date + "/", end="")
+                    print('       "', end="")
+                    print("")
                 if args.links_dir:
-                    os.makedirs(path, exists=True)
-                    # make_sure_path_exists(args.links_dir)
-                    os.symlink(b_fullpath, os.path.join(args.links_dir, b_date + "__" + file))
-
+                    try:
+                        os.symlink(b_fullpath, os.path.join(args.links_dir, b_date + "__" + file))
+                    except FileExistsError:
+                        print('file missing')
         else:
             pass
 
         previous_md5 = this_md5
         previous_size = this_size
         previous_fullpath = b_fullpath
-        print("")
 
+
+def is_windows_lnk(file):
+    if os.path.splitext(file)[1] == ".lnk":
+        return True
+    return False
 
 def main():
 
@@ -144,10 +168,10 @@ def main():
     parser.add_argument("input", nargs="*", default="", help="input file ...")
 
     parser.add_argument(
-        "-u",
-        "--unique",
+        "-a",
+        "--all",
         action="store_true",
-        help="Only output each file state once.",
+        help="Output every file, not just unique ones.",
     )
 
     parser.add_argument(
@@ -165,7 +189,7 @@ def main():
     )
 
     parser.add_argument(
-        "-d",
+        "-l",
         "--links-dir",
         type=str,
         default="",
@@ -175,7 +199,7 @@ def main():
     global args
     args = parser.parse_args()
 
-    print("args==", args)
+    #print("args==", args)
 
     if not len(args.input):
         print("asdf")
@@ -187,20 +211,37 @@ def main():
 
     if args.md5:
         print("Comparing by md5sum. This could be slow if the file is large.")
-    else:
-        print("Comparing by file size.")
+    # else:
+    #     print("Comparing by file size.")
     for single_input in args.input:
 
-        print("os.path.isfile(single_input)=", os.path.isfile(single_input))
+        # print("os.path.isfile(single_input)=", os.path.isfile(single_input))
+        # print("os.path.isdir(single_input)=", os.path.isdir(single_input))
+        # print("os.path.islink(single_input)=", os.path.islink(single_input))
+        # print("is_windows_lnk", is_windows_lnk(single_input))
 
-        if not (os.path.isdir(single_input) or os.path.isfile(single_input)):
-            parser.print_help()
-            return 0
+        print('\n')
 
         absinput = os.path.abspath(single_input)
 
+        if not os.path.exists(single_input):
+            print("File not Found:", single_input)
+            continue
+
         if os.path.isdir(absinput):
-            print(single_input, "is not a file. Folders do not work.")
+            print(f"Directories not supported. '{single_input}'")
+            continue
+
+        if not (
+            os.path.isdir(single_input)
+            or os.path.isfile(single_input)
+            or os.path.islink(single_input)
+            or is_windows_lnk(single_input)
+        ):
+            # parser.print_help()
+            print("Not a file:", single_input)
+            continue
+
 
         if os.path.isfile(absinput):
             process_file(absinput)
