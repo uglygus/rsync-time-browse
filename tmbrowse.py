@@ -118,17 +118,17 @@ def process_file(filename):
             this_size = file_stats.st_size
 
 
-
-            if args.md5:
+            size_changed = this_size != previous_size
+            if not size_changed and args.md5:
                 this_md5 = md5(b_fullpath)
-
-            #    print(os.path.join(rel_path, file), end="")
-            # print("/" + file, end="")
-
-            if args.md5:
                 is_changed = this_md5 != previous_md5
             else:
-                is_changed = this_size != previous_size
+                is_changed = size_changed
+            # if args.md5:
+            #     this_md5 = md5(b_fullpath)
+            #     is_changed = this_md5 != previous_md5
+            # else:
+            #     is_changed = this_size != previous_size
 
             if is_changed:
                 print(b_date + "/", end="")
@@ -165,6 +165,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="List all version of a specific file in a timemachine style hardlink backup dir."
     )
+
     parser.add_argument("input", nargs="*", default="", help="input file ...")
 
     parser.add_argument(
@@ -193,7 +194,7 @@ def main():
         "--links-dir",
         type=str,
         default="",
-        help="Create a linked file to each state of the fle. Directory to story links in.",
+        help="Directory to story links in. Create a linked file for each unique file found. ",
     )
 
     global args
@@ -202,7 +203,6 @@ def main():
     #print("args==", args)
 
     if not len(args.input):
-        print("asdf")
         parser.print_help()
         return 0
 
@@ -211,14 +211,9 @@ def main():
 
     if args.md5:
         print("Comparing by md5sum. This could be slow if the file is large.")
-    # else:
-    #     print("Comparing by file size.")
-    for single_input in args.input:
 
-        # print("os.path.isfile(single_input)=", os.path.isfile(single_input))
-        # print("os.path.isdir(single_input)=", os.path.isdir(single_input))
-        # print("os.path.islink(single_input)=", os.path.islink(single_input))
-        # print("is_windows_lnk", is_windows_lnk(single_input))
+
+    for single_input in args.input:
 
         print('\n')
 
@@ -233,19 +228,16 @@ def main():
             continue
 
         if not (
-            os.path.isdir(single_input)
-            or os.path.isfile(single_input)
+            os.path.isfile(single_input)
             or os.path.islink(single_input)
             or is_windows_lnk(single_input)
         ):
-            # parser.print_help()
             print("Not a file:", single_input)
             continue
-
 
         if os.path.isfile(absinput):
             process_file(absinput)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
