@@ -73,10 +73,10 @@ def process_file(filename):
     backup_root = get_backup_root(filename)
 #    print("BACKUP_ROOT = ", backup_root)
     if not backup_root:
-        print("Cannot find .marker in this tree:", filename)
+        print("Cannot find backup.marker in this tree:", filename)
         return
 
-    print(filename)
+    print('\n'+filename)
 
     pattern = ".+\d\d\d\d-\d\d-\d\d-\d\d\d\d\d\d(.+)"
     m = re.search(pattern, orig_path)
@@ -105,54 +105,44 @@ def process_file(filename):
     for b in backups:
 
         b_date = os.path.split(b)[1]
-        b_fullpath = os.path.join(b, rel_path, file)
-
-        if args.fullpath:
-            print(backup_root + "/", end="")
+        b_rel_filepath = os.path.join(b, rel_path, file)
 
         this_md5 = ""
         this_size = ""
 
-        if os.path.exists(b_fullpath):
-            file_stats = os.stat(b_fullpath)
+        if os.path.exists(b_rel_filepath):
+            file_stats = os.stat(b_rel_filepath)
             this_size = file_stats.st_size
 
-
             size_changed = this_size != previous_size
-            if not size_changed and args.md5:
-                this_md5 = md5(b_fullpath)
+            if args.md5:
+                this_md5 = md5(b_rel_filepath)
                 is_changed = this_md5 != previous_md5
             else:
                 is_changed = size_changed
-            # if args.md5:
-            #     this_md5 = md5(b_fullpath)
-            #     is_changed = this_md5 != previous_md5
-            # else:
-            #     is_changed = this_size != previous_size
 
-            if is_changed:
+            if is_changed or args.all:
+                if args.fullpath:
+                    print(backup_root + "/", end="")
                 print(b_date + "/", end="")
                 print(os.path.join(rel_path, file), end="")
                 print("\t_size=", this_size, end="")
+
                 if args.md5:
                     print("\t_md5=", this_md5, end="")
-                print("")
-            else:
-                if args.all:
-                    print(b_date + "/", end="")
-                    print('       "', end="")
-                    print("")
+
                 if args.links_dir:
                     try:
-                        os.symlink(b_fullpath, os.path.join(args.links_dir, b_date + "__" + file))
+                        os.symlink(b_rel_filepath, os.path.join(args.links_dir, b_date + "__" + file))
                     except FileExistsError:
                         print('file missing')
+                print("")
         else:
             pass
 
         previous_md5 = this_md5
         previous_size = this_size
-        previous_fullpath = b_fullpath
+        previous_fullpath = b_rel_filepath
 
 
 def is_windows_lnk(file):
@@ -172,7 +162,7 @@ def main():
         "-a",
         "--all",
         action="store_true",
-        help="Output every file, not just unique ones.",
+        help="Output every version of a file, not just unique ones.",
     )
 
     parser.add_argument(
@@ -212,10 +202,7 @@ def main():
     if args.md5:
         print("Comparing by md5sum. This could be slow if the file is large.")
 
-
     for single_input in args.input:
-
-        print('\n')
 
         absinput = os.path.abspath(single_input)
 
