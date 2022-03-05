@@ -1,9 +1,7 @@
 # rsync-time-browse
 
 
-Search for changes to specific files within a hardlink created backup solution link those
-
-There are many programs that create hardlink style backup trees. This should work on any that use a 'backup.marker' file to denote the root of a backup tree. Probably others with minor tweaks.
+Search for changes to specific files within a hardlink based backup. There are many programs that create hardlink style backup trees. This should work on any that use a 'backup.marker' file to denote the root of a backup tree. Probably others with minor tweaks.
 
 The --links-dir option is particularly useful.
 
