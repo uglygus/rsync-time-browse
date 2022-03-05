@@ -23,11 +23,12 @@ def make_sure_path_exists(path):
 def md5(filename):
     with open(filename, "rb") as f:
         file_hash = hashlib.md5()
-        while chunk := f.read(8192):
+        chunk = f.read(8192)
+        while chunk:
             file_hash.update(chunk)
-
+            chunk = f.read(8192)
     return file_hash.hexdigest()
-
+    
 
 def get_backup_root(filename):
     """
