@@ -8,8 +8,9 @@ There are many programs that create hardlink style backup trees. This should wor
 The --links-dir option is particularly useful.
 
 Tested with backups made by:
-[laurent22/rsync-time-backup](https://github.com/laurent22/rsync-time-backup)
-[eaut/rsync-time-backup](https://github.com/eaut/rsync-time-backup)
+
+* [laurent22/rsync-time-backup](https://github.com/laurent22/rsync-time-backup)
+* [eaut/rsync-time-backup](https://github.com/eaut/rsync-time-backup)
 
 
 
