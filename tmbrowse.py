@@ -69,6 +69,8 @@ def get_backup_folders(path):
 
 def process_file(filename):
 
+    # print("processing file: ", filename)
+
     rel_path = ""
     orig_path, file = os.path.split(filename)
     backup_root = get_backup_root(filename)
@@ -207,7 +209,7 @@ def main():
 
     for single_input in args.input:
 
-        absinput = os.path.abspath(single_input)
+        absinput = os.path.abspath(os.path.realpath(single_input))
 
         if not os.path.exists(single_input):
             print("File not Found:", single_input)
