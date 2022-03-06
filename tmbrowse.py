@@ -28,7 +28,7 @@ def md5(filename):
             file_hash.update(chunk)
             chunk = f.read(8192)
     return file_hash.hexdigest()
-    
+
 
 def get_backup_root(filename):
     """
@@ -72,12 +72,12 @@ def process_file(filename):
     rel_path = ""
     orig_path, file = os.path.split(filename)
     backup_root = get_backup_root(filename)
-#    print("BACKUP_ROOT = ", backup_root)
+    #    print("BACKUP_ROOT = ", backup_root)
     if not backup_root:
         print("Cannot find backup.marker in this tree:", filename)
         return
 
-    print('\n'+filename)
+    #    print('\n'+filename)
 
     pattern = ".+\d\d\d\d-\d\d-\d\d-\d\d\d\d\d\d(.+)"
     m = re.search(pattern, orig_path)
@@ -88,20 +88,19 @@ def process_file(filename):
     backups = get_backup_folders(backup_root)
 
     num_backups = len(backups)
-    print(f"{num_backups}  backups at root:", backup_root)
+    print(f"\n{num_backups} backups at root:", backup_root)
 
     previous_md5 = ""
     previous_size = ""
     this_md5 = ""
 
-
     if args.links_dir:
         try:
             make_sure_path_exists(args.links_dir)
-            #os.makedirs(args.links_dir, exist_ok=False)
+            # os.makedirs(args.links_dir, exist_ok=False)
         except FileExistsError:
-            print('links dir exists already. No links made.')
-            args.links_dir=False
+            print("links dir exists already. No links made.")
+            args.links_dir = False
 
     for b in backups:
 
@@ -134,9 +133,11 @@ def process_file(filename):
 
                 if args.links_dir:
                     try:
-                        os.symlink(b_rel_filepath, os.path.join(args.links_dir, b_date + "__" + file))
+                        os.symlink(
+                            b_rel_filepath, os.path.join(args.links_dir, b_date + "__" + file)
+                        )
                     except FileExistsError:
-                        print('file missing')
+                        print("file missing")
                 print("")
         else:
             pass
@@ -150,6 +151,7 @@ def is_windows_lnk(file):
     if os.path.splitext(file)[1] == ".lnk":
         return True
     return False
+
 
 def main():
 
@@ -191,7 +193,7 @@ def main():
     global args
     args = parser.parse_args()
 
-    #print("args==", args)
+    # print("args==", args)
 
     if not len(args.input):
         parser.print_help()
