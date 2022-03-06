@@ -14,6 +14,8 @@ Tested with backups made by:
 
 
 
+## Usage
+
 ```
 $./tmbrowse.py -h
 usage: tmbrowse.py [-h] [-a] [-f] [-m] [-l LINKS_DIR] [input [input ...]]
@@ -34,7 +36,7 @@ optional arguments:
 
 
 
-## LICENSE
+## License
 
 The MIT License (MIT)
 
