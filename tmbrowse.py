@@ -79,8 +79,6 @@ def process_file(filename):
         print("Cannot find backup.marker in this tree:", filename)
         return
 
-    #    print('\n'+filename)
-
     pattern = ".+\d\d\d\d-\d\d-\d\d-\d\d\d\d\d\d(.+)"
     m = re.search(pattern, orig_path)
     if m:
