@@ -40,6 +40,8 @@ def get_backup_root(filename):
 
     path_parts = os.path.split(filename)
 
+    print(f"{filename=}")
+
     if path_parts[0] == "/":
         return False
 
